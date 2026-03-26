@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -47,5 +48,15 @@ public class ApiExceptionHandler {
         body.put("error", "Conflito de dados: verifique unicidade e integridade dos campos.");
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", OffsetDateTime.now());
+        body.put("status", HttpStatus.UNAUTHORIZED.value());
+        body.put("error", "Credenciais inválidas.");
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
 }

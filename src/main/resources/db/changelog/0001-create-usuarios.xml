@@ -16,10 +16,54 @@
             <column name="email" type="VARCHAR(150)">
                 <constraints nullable="false" unique="true" uniqueConstraintName="uk_usuarios_email"/>
             </column>
+            <column name="senha_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
             <column name="criado_em" type="TIMESTAMP WITH TIME ZONE">
                 <constraints nullable="false"/>
             </column>
         </createTable>
+    </changeSet>
+
+    <changeSet id="0002-create-revinfo" author="copilot">
+        <createTable tableName="revinfo">
+            <column name="rev" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_revinfo" nullable="false"/>
+            </column>
+            <column name="revtstmp" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(150)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="0003-create-usuarios-aud" author="copilot">
+        <createTable tableName="usuarios_aud">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rev" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="nome" type="VARCHAR(120)"/>
+            <column name="email" type="VARCHAR(150)"/>
+            <column name="senha_hash" type="VARCHAR(255)"/>
+            <column name="role" type="VARCHAR(20)"/>
+            <column name="criado_em" type="TIMESTAMP WITH TIME ZONE"/>
+        </createTable>
+
+        <addPrimaryKey tableName="usuarios_aud" columnNames="id, rev" constraintName="pk_usuarios_aud"/>
+
+        <addForeignKeyConstraint
+                baseTableName="usuarios_aud"
+                baseColumnNames="rev"
+                referencedTableName="revinfo"
+                referencedColumnNames="rev"
+                constraintName="fk_usuarios_aud_rev"/>
     </changeSet>
 
 </databaseChangeLog>

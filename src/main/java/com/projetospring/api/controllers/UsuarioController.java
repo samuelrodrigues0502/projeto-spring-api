@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.projetospring.api.dtos.UsuarioCreateRequest;
-import com.projetospring.api.entities.Usuario;
+import com.projetospring.api.dtos.UsuarioResponse;
 import com.projetospring.api.services.UsuarioService;
 
 import jakarta.validation.Valid;
@@ -27,19 +27,15 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
 
     @GetMapping
-    public List<Usuario> listarTodos() {
+    public List<UsuarioResponse> listarTodos() {
         // Controller delega para o Service; sem regra de negócio aqui
         return usuarioService.listarTodos();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Usuario criar(@RequestBody @Valid UsuarioCreateRequest usuarioRequest) {
-        Usuario usuario = Usuario.builder()
-                .nome(usuarioRequest.getNome())
-                .email(usuarioRequest.getEmail())
-                .build();
+    public UsuarioResponse criar(@RequestBody @Valid UsuarioCreateRequest usuarioRequest) {
         // Controller só recebe o payload HTTP e encaminha para o Service
-        return usuarioService.criar(usuario);
+        return usuarioService.criar(usuarioRequest);
     }
 }
