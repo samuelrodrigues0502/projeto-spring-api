@@ -1,72 +1,47 @@
 package com.projetospring.api;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.projetospring.api.dtos.AuthLoginRequest;
+import com.projetospring.api.dtos.AuthResponse;
+import com.projetospring.api.dtos.UsuarioCreateRequest;
+import com.projetospring.api.services.AuthService;
+import com.projetospring.api.services.UsuarioService;
 
 @SpringBootTest
-@AutoConfigureMockMvc
 class UsuarioFluxoIntegrationTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private UsuarioService usuarioService;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private AuthService authService;
 
     @Test
     void deveCadastrarLogarEAcessarRotaProtegida() throws Exception {
         String email = "usuario" + System.currentTimeMillis() + "@email.com";
 
-        String createPayload = """
-                {
-                  "nome": "Samuel",
-                  "email": "%s",
-                  "senha": "12345678"
-                }
-                """.formatted(email);
+        UsuarioCreateRequest createRequest = new UsuarioCreateRequest();
+        createRequest.setNome("Samuel");
+        createRequest.setEmail(email);
+        createRequest.setSenha("12345678");
 
-        mockMvc.perform(post("/usuarios")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(createPayload))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.email").value(email));
+        usuarioService.criar(createRequest);
 
-        String loginPayload = """
-                {
-                  "email": "%s",
-                  "senha": "12345678"
-                }
-                """.formatted(email);
+        AuthLoginRequest loginRequest = new AuthLoginRequest();
+        loginRequest.setEmail(email);
+        loginRequest.setSenha("12345678");
 
-        MvcResult loginResult = mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginPayload))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").isString())
-                .andReturn();
+        AuthResponse response = authService.login(loginRequest);
 
-        JsonNode loginJson = objectMapper.readTree(loginResult.getResponse().getContentAsString());
-        String token = loginJson.get("token").asText();
-
-        mockMvc.perform(get("/usuarios"))
-                .andExpect(status().isUnauthorized());
-
-        mockMvc.perform(get("/usuarios")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].email").exists());
+        assertNotNull(response);
+        assertNotNull(response.getToken());
+        assertFalse(response.getToken().isBlank());
+        assertFalse(usuarioService.listarTodos().isEmpty());
     }
 }

@@ -68,7 +68,10 @@ public class JwtService {
     private SecretKey buildKey(String secret) {
         try {
             byte[] decoded = Base64.getDecoder().decode(secret);
-            return Keys.hmacShaKeyFor(decoded);
+            if (decoded.length >= 32) {
+                return Keys.hmacShaKeyFor(decoded);
+            }
+            return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         } catch (IllegalArgumentException ex) {
             return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         }
